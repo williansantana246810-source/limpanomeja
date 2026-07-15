@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LimpaNomeJá — Planejador Financeiro de Dívidas | Willian Santana</title>
+    <meta name="description" content="Descubra quais dívidas pagar, em quantas parcelas e quanto economizar. 3 dias grátis. Funciona com Serasa, SPC, Acordo Certo.">
+    <meta name="author" content="Willian Santana">
+    <meta name="theme-color" content="#1e3a5f">
+    <meta property="og:title" content="LimpaNomeJá — Quite suas dívidas com inteligência">
+    <meta property="og:description" content="Ferramenta gratuita que analisa suas dívidas e mostra o melhor parcelamento. 3 dias grátis.">
+    <meta property="og:type" content="website">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --azul:#1e3a5f;--roxo:#7c3aed;--roxo-hover:#6d28d9;--roxo-claro:#ede9fe;
+            --branco:#ffffff;--cinza-fundo:#f1f5f9;--cinza-claro:#e2e8f0;
+            --cinza-medio:#64748b;--cinza-escuro:#1e293b;--verde:#059669;
+            --verde-claro:#d1fae5;--laranja:#ea580c;--laranja-claro:#fff7ed;
+        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--cinza-fundo);color:var(--cinza-escuro);line-height:1.5;-webkit-font-smoothing:antialiased}
+        .container{max-width:500px;margin:0 auto;padding:12px 14px 30px}
+
+        .trial-banner{background:var(--roxo-claro);color:#5b21b6;text-align:center;padding:8px 12px;border-radius:50px;font-size:11px;font-weight:600;margin-bottom:8px;display:none}
+        .trial-banner.show{display:block;animation:pulse 2s infinite}
+        .trial-banner.urgente{background:#fef2f2;color:#991b1b;animation:none;font-weight:700}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+
+        .header{text-align:center;padding:14px 0 4px}
+        .header .logo{font-size:21px;font-weight:800;color:var(--azul);letter-spacing:-0.3px}
+        .header .logo span{color:var(--roxo)}
+        .header .fundador{font-size:10px;color:var(--cinza-medio);margin-top:1px}
+
+        .hero{background:linear-gradient(135deg,#1e3a5f,#2d1b69);color:var(--branco);border-radius:20px;padding:22px 16px;text-align:center;margin:10px 0;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+        .hero h1{font-size:20px;font-weight:800;line-height:1.3;margin-bottom:4px}
+        .hero p{font-size:11px;opacity:.92;line-height:1.4}
+        .hero .lancamento{display:inline-block;background:var(--laranja);color:#fff;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;margin-bottom:6px}
+
+        .section{display:none}
+        .section.active{display:block}
+
+        .passos{background:var(--branco);border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 6px rgba(0,0,0,.05);border:1px solid var(--cinza-claro)}
+        .passo{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--cinza-claro);font-size:12px}
+        .passo:last-child{border-bottom:none}
+        .passo-num{width:28px;height:28px;border-radius:50%;background:var(--roxo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0}
+
+        .instalacao{background:var(--branco);border:2px solid var(--roxo);border-radius:16px;padding:16px;text-align:center;margin:10px 0;box-shadow:0 4px 6px rgba(0,0,0,.05)}
+        .instalacao h3{font-size:15px;font-weight:700;color:var(--azul);margin-bottom:2px}
+        .btn-arrastar{display:inline-block;background:var(--roxo);color:#fff;padding:13px 26px;border-radius:50px;font-weight:700;font-size:15px;cursor:grab;text-decoration:none;box-shadow:0 4px 16px rgba(124,58,237,.35);transition:all .2s}
+        .btn-arrastar:hover{background:var(--roxo-hover);transform:translateY(-2px)}
+        .instrucao{font-size:9px;color:var(--cinza-medio);margin-top:6px;line-height:1.4}
+
+        .btn{display:inline-block;width:100%;padding:12px 16px;border:none;border-radius:50px;font-weight:700;font-size:14px;cursor:pointer;text-align:center;font-family:'Inter',sans-serif;min-height:48px;transition:all .2s}
+        .btn-primario{background:var(--roxo);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)}
+        .btn-primario:hover{background:var(--roxo-hover)}
+        .btn-laranja{background:var(--laranja);color:#fff}
+        .btn-laranja:hover{background:#c2410c}
+        .btn-outline{background:#fff;color:var(--roxo);border:2px solid var(--roxo)}
+        .btn-outline:hover{background:var(--roxo-claro)}
+        .btn-verde{background:var(--verde);color:#fff;font-size:13px}
+        .btn-verde:hover{background:#047857}
+
+        .card{background:var(--branco);border-radius:14px;padding:10px 12px;margin:5px 0;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--cinza-claro)}
+        .card.destaque{border-left:4px solid var(--verde)}
+        .card.alerta{border-left:4px solid var(--laranja);background:var(--laranja-claro)}
+        .badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:9px;font-weight:600}
+        .badge-verde{background:var(--verde-claro);color:#065f46}
+        .badge-laranja{background:var(--laranja-claro);color:#9a3412}
+
+        .premium-card{background:linear-gradient(135deg,#1e3a5f,#2d1b69);color:#fff;border-radius:20px;padding:18px;margin:10px 0;text-align:center}
+        .premium-card h3{font-size:15px;margin-bottom:2px}
+        .premium-card .preco{font-size:26px;font-weight:800;margin:4px 0}
+        .premium-card .preco small{font-size:12px;font-weight:400;opacity:.8}
+        .premium-card .chave-pix{background:rgba(255,255,255,.12);padding:8px;border-radius:8px;font-family:monospace;font-size:10px;word-break:break-all;margin:4px 0;user-select:all}
+        .garantia{display:flex;align-items:center;justify-content:center;gap:4px;padding:4px 8px;background:rgba(255,255,255,.1);border-radius:8px;font-size:9px;margin:4px 0}
+
+        .input-dinheiro{width:100%;padding:12px;background:#fff;border:2px solid var(--cinza-claro);border-radius:50px;font-size:17px;font-weight:600;text-align:center;font-family:'Inter',sans-serif;min-height:48px;color:var(--cinza-escuro)}
+        .input-dinheiro:focus{border-color:var(--roxo);outline:none;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+        label{display:block;font-size:11px;font-weight:600;margin-bottom:3px;color:var(--cinza-escuro)}
+        .dica{font-size:9px;color:var(--cinza-medio);text-align:center;margin:2px 0 8px}
+
+        .resultado-box{background:#fff;border-radius:16px;padding:16px;text-align:center;box-shadow:0 4px 6px rgba(0,0,0,.05);border:2px solid var(--verde);margin:8px 0}
+        .resultado-box .numero{font-size:34px;font-weight:800;color:var(--azul)}
+
+        .parcela-opcao{padding:5px 7px;margin:2px 0;background:var(--cinza-fundo);border-radius:6px;font-size:10px;color:var(--cinza-escuro)}
+        .parcela-opcao.melhor{background:var(--roxo-claro);border:1px solid var(--roxo);font-weight:500}
+
+        .script-box{background:#f8fafc;border:1px solid var(--cinza-claro);border-radius:8px;padding:8px 10px;margin-top:6px;font-size:10px;color:var(--cinza-escuro);line-height:1.5;font-style:italic}
+
+        .icone{display:inline-block;width:18px;height:18px;vertical-align:middle;margin-right:6px;flex-shrink:0}
+        .icone svg{width:100%;height:100%}
+
+        .beneficios{background:#fff;border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 4px 6px rgba(0,0,0,.05);border:1px solid var(--cinza-claro)}
+        .beneficios h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--azul)}
+        .beneficio-item{display:flex;gap:6px;align-items:center;padding:6px 0;font-size:11px;border-bottom:1px solid var(--cinza-claro);color:var(--cinza-escuro)}
+
+        .comparativo{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+        .comp-card{background:#fff;border-radius:14px;padding:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--cinza-claro)}
+        .comp-card.premium{border:2px solid var(--roxo);background:var(--roxo-claro)}
+        .comp-card h4{font-size:13px;margin-bottom:6px;color:var(--azul)}
+        .comp-card ul{list-style:none;font-size:10px;text-align:left;padding:0}
+        .comp-card li{padding:3px 0;color:var(--cinza-escuro)}
+        .comp-card .preco-destaque{font-weight:800;font-size:14px;color:var(--roxo);margin-top:4px}
+
+        .timeline{margin-top:10px}
+        .timeline-item{display:flex;gap:10px;padding:6px 0;font-size:10px;align-items:center}
+        .timeline-dot{width:8px;height:8px;border-radius:50%;background:var(--roxo);flex-shrink:0}
+        .timeline-data{color:var(--cinza-medio);min-width:55px;font-size:9px}
+
+        .score-bar{height:8px;background:var(--cinza-claro);border-radius:4px;margin:4px 0;overflow:hidden}
+        .score-fill{height:100%;background:var(--verde);border-radius:4px;transition:width .5s}
+
+        .depoimento{background:#fff;border-radius:14px;padding:10px 12px;margin:5px 0;font-size:10px;font-style:italic;box-shadow:0 1px 3px rgba(0,0,0,.06);border:1px solid var(--cinza-claro)}
+        .depoimento .nome{font-style:normal;font-weight:600;color:var(--roxo);font-size:9px;margin-top:3px}
+        .depoimento .cidade{font-size:8px;color:var(--cinza-medio)}
+
+        .fundador-card{background:#fff;border-radius:14px;padding:10px 12px;display:flex;gap:8px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06);margin:8px 0;border:1px solid var(--cinza-claro);font-size:10px}
+        .fundador-avatar{width:36px;height:36px;border-radius:50%;background:var(--roxo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0}
+
+        .footer{text-align:center;padding:14px 0 6px;font-size:8px;color:var(--cinza-medio);line-height:1.5}
+        .toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--verde);color:#fff;padding:10px 18px;border-radius:50px;font-weight:600;font-size:11px;z-index:9999;display:none;box-shadow:0 10px 25px rgba(0,0,0,.08)}
+        .toast.show{display:block}
+        .trial-info{background:var(--roxo-claro);border-radius:10px;padding:8px;text-align:center;font-size:10px;color:#5b21b6;margin:6px 0;display:none}
+        .trial-info.show{display:block}
+
+        .share-box{text-align:center;margin:10px 0;padding:12px;background:#fff;border-radius:14px;border:1px dashed var(--roxo)}
+        .share-box p{font-size:10px;color:var(--cinza-medio);margin-bottom:6px}
+
+        hr{border:none;border-top:1px solid var(--cinza-claro);margin:10px 0}
+
+        @media(max-width:370px){.container{padding:6px 8px 18px}.hero h1{font-size:17px}.hero{padding:16px 12px}}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="trial-banner" id="trialBanner"></div>
+        <div class="header">
+            <div class="logo">Limpa<span>Nome</span>Já</div>
+            <div class="fundador">por Willian Santana</div>
+        </div>
+
+        <!-- ===== TELA INICIAL ===== -->
+        <div class="section active" id="telaInicial">
+            <div class="hero">
+                <div class="lancamento">LANÇAMENTO</div>
+                <h1>3 dias grátis: descubra quais dívidas pagar e em quantas parcelas</h1>
+                <p>Depois R$ 14,90/mês. Cancele quando quiser.</p>
+            </div>
+
+            <div class="passos">
+                <div class="passo"><div class="passo-num">1</div><div>Instale o botão abaixo <strong>(5 segundos)</strong></div></div>
+                <div class="passo"><div class="passo-num">2</div><div>Entre no <strong>Serasa, SPC ou Acordo Certo</strong></div></div>
+                <div class="passo"><div class="passo-num">3</div><div>Clique no botão salvo e <strong>pronto</strong></div></div>
+            </div>
+
+            <div class="instalacao">
+                <h3>Instalar agora</h3>
+                <p style="font-size:10px;color:var(--cinza-medio);margin:2px 0 8px;">Arraste o botão para seus favoritos</p>
+                <a href="javascript:(function(){var s=document.createElement('script');s.src='https://SEU-SITE.netlify.app/extractor.js?v='+Date.now();document.body.appendChild(s);})();" class="btn-arrastar" onclick="event.preventDefault();">LIMPAR NOME</a>
+                <div class="instrucao">Celular: segure o botão &rarr; Adicionar aos favoritos &rarr; Salvar<br>PC: arraste para a barra de favoritos</div>
+            </div>
+
+            <!-- COMPARATIVO -->
+            <div class="comparativo">
+                <div class="comp-card">
+                    <h4>Grátis</h4>
+                    <ul>
+                        <li>✔ 3 dívidas</li>
+                        <li>✔ 1 análise/mês</li>
+                        <li>✔ 3 scripts WhatsApp</li>
+                        <li>✘ Sem relatório</li>
+                        <li>✘ Sem histórico</li>
+                    </ul>
+                </div>
+                <div class="comp-card premium">
+                    <h4>Premium</h4>
+                    <ul>
+                        <li>✔ Análise ilimitada</li>
+                        <li>✔ Relatório mensal</li>
+                        <li>✔ Scripts ilimitados</li>
+                        <li>✔ Histórico de evolução</li>
+                        <li>✔ PDF + Checklist</li>
+                    </ul>
+                    <div class="preco-destaque">R$ 14,90/mês</div>
+                </div>
+            </div>
+
+            <!-- BENEFÍCIOS -->
+            <div class="beneficios">
+                <h4>O que o Premium inclui:</h4>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                    Análise ilimitada de todas as suas dívidas
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                    Relatório mensal comparativo
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Histórico de evolução e economia acumulada
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    Alertas quando propostas baixarem de preço
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Scripts WhatsApp personalizados ilimitados
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    PDF com plano de ação + Checklist
+                </div>
+                <div class="beneficio-item">
+                    <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="var(--roxo)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Monitoramento de evolução do seu nome
+                </div>
+            </div>
+
+            <div id="depoimentosContainer"></div>
+
+            <div class="fundador-card">
+                <div class="fundador-avatar">WS</div>
+                <div><strong>Willian Santana</strong><br>"Ajudei meu irmão a quitar 7 dívidas com R$ 200. Agora quero ajudar você."</div>
+            </div>
+        </div>
+
+        <!-- ===== TELA ANÁLISE ===== -->
+        <div class="section" id="telaAnalise">
+            <div class="trial-info" id="trialInfo"></div>
+            <div class="hero">
+                <h1>Dívidas encontradas</h1>
+                <p id="numDividasDetectadas">0 dívidas</p>
+            </div>
+            <label>Quanto você pode pagar por mês?</label>
+            <input type="number" id="orcamento" class="input-dinheiro" placeholder="Ex: R$ 200" step="0.01" inputmode="decimal">
+            <p class="dica">Ex: R$ 200 — valor mensal disponível para parcelas</p>
+            <button class="btn btn-primario" onclick="executarAnalise()">Analisar Agora</button>
+            <div id="resultadoContainer"></div>
+            <div id="premiumContainer"></div>
+        </div>
+
+        <div class="toast" id="toast"></div>
+        <div class="footer">
+            <strong>LimpaNomeJá</strong> &copy; 2026 · Criado por Willian Santana<br>
+            Dúvidas: willian.santana@limpanomeja.com<br>
+            Ferramenta educativa. Sempre confira os valores no site oficial.
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+    // ==================== CONFIGURAÇÃO (ALTERE AQUI) ====================
+    const CHAVE_PIX = 'SUA_CHAVE_ALEATORIA_AQUI';
+    const FIREBASE_CONFIG = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_PROJETO.firebaseapp.com",
+        projectId: "SEU_PROJETO",
+        storageBucket: "SEU_PROJETO.appspot.com",
+        messagingSenderId: "000000000000",
+        appId: "SEU_APP_ID"
+    };
+    const TRIAL_DIAS = 3;
+    const GRATUITAS = 3;
+    const PRECO = 'R$ 14,90';
+    // =====================================================================
+
+    firebase.initializeApp(FIREBASE_CONFIG);
+    const db = firebase.firestore();
+
+    let dividasExtraidas = [];
+    let sessaoId = 'LIMPA-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+    // ============ TRIAL ============
+    function getTrialStart() { return localStorage.getItem('trialStart'); }
+    function setTrialStart() { if (!getTrialStart()) localStorage.setItem('trialStart', Date.now().toString()); }
+    function isTrialActive() {
+        const s = getTrialStart();
+        if (!s) return true;
+        return (Date.now() - parseInt(s)) / 36e5 < (TRIAL_DIAS * 24);
+    }
+    function getTrialRestante() {
+        const s = getTrialStart();
+        if (!s) return TRIAL_DIAS;
+        return Math.max(0, Math.ceil(TRIAL_DIAS - ((Date.now() - parseInt(s)) / 864e5)));
+    }
+    function atualizarBanners() {
+        const b = document.getElementById('trialBanner'), i = document.getElementById('trialInfo');
+        if (isTrialActive()) {
+            const d = getTrialRestante();
+            b.textContent = d <= 1 ? 'ÚLTIMO DIA! Assine para manter acesso ilimitado.' : `${d} dias grátis restantes`;
+            b.className = 'trial-banner show' + (d <= 1 ? ' urgente' : '');
+            if (i) { i.textContent = `Trial ativo: ${d} dia(s) restantes — TODAS as dívidas liberadas`; i.className = 'trial-info show'; }
+        } else {
+            b.className = 'trial-banner';
+            if (i) { i.textContent = 'Modo gratuito: 3 dívidas. Premium: R$ 14,90/mês.'; i.className = 'trial-info show'; }
+        }
+    }
+
+    // ============ HISTÓRICO ============
+    function salvarAnalise(dividas) {
+        const historico = JSON.parse(localStorage.getItem('historicoAnalises') || '[]');
+        historico.push({
+            data: new Date().toISOString(),
+            totalDividas: dividas.length,
+            dividas: dividas.map(d => ({ original: d.original, vista: d.vista, credor: d.credor || '' })),
+            valorTotalOriginal: dividas.reduce((s, d) => s + (d.original || 0), 0),
+            valorTotalVista: dividas.reduce((s, d) => s + (d.vista || 0), 0)
+        });
+        if (historico.length > 12) historico.shift();
+        localStorage.setItem('historicoAnalises', JSON.stringify(historico));
+        return historico;
+    }
+
+    function obterHistorico() { return JSON.parse(localStorage.getItem('historicoAnalises') || '[]'); }
+
+    function compararComUltimaAnalise(dividasAtuais) {
+        const hist = obterHistorico();
+        if (hist.length < 2) return null;
+        const anterior = hist[hist.length - 2];
+        const agora = hist[hist.length - 1];
+        const alertas = [];
+        dividasAtuais.forEach(d => {
+            const antes = anterior.dividas.find(x => x.credor === d.credor && Math.abs(x.original - d.original) < 100);
+            if (antes && d.vista && antes.vista && d.vista < antes.vista) {
+                alertas.push({ credor: d.credor || 'Dívida', antes: antes.vista, agora: d.vista, diff: antes.vista - d.vista });
+            }
+        });
+        return { analiseAnterior: anterior, analiseAtual: agora, alertas, scoreAntes: calcularScore(anterior), scoreAgora: calcularScore(agora) };
+    }
+
+    function calcularScore(analise) {
+        if (!analise || analise.totalDividas === 0) return 1000;
+        const descontoMedio = analise.totalValorOriginal > 0 ? (1 - analise.totalValorVista / analise.totalValorOriginal) * 100 : 0;
+        return Math.min(1000, Math.max(0, Math.round(Math.max(0, 1000 - (analise.totalDividas * 80)) + Math.min(200, descontoMedio * 2))));
+    }
+
+    // ============ DEPOIMENTOS ============
+    const depoimentosFixos = [
+        { nome:'Dona Neuza', cidade:'Recife/PE', texto:'Meu filho instalou pra mim. Eu tinha 8 dívidas e não sabia qual pagar. A ferramenta mostrou tudinho. Quitei 5 com R$ 300.' },
+        { nome:'Lucas M.', cidade:'Brasília/DF', texto:'Tava devendo R$ 15 mil no cartão. A ferramenta mostrou que dava pra quitar em 6x com 60% de desconto.' },
+        { nome:'Patrícia R.', cidade:'Belo Horizonte/MG', texto:'Mãe solo, nome sujo há 4 anos. Em 10 minutos a ferramenta me deu um plano. Hoje tô com nome limpo.' }
+    ];
+    function carregarDepoimentos() {
+        document.getElementById('depoimentosContainer').innerHTML = depoimentosFixos.map(d =>
+            `<div class="depoimento">"${d.texto}"<div class="nome">${d.nome}</div><div class="cidade">${d.cidade}</div></div>`).join('');
+    }
+
+    function mostrarToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ============ INICIALIZAÇÃO ============
+    window.addEventListener('DOMContentLoaded', () => {
+        atualizarBanners(); carregarDepoimentos();
+        const p = new URLSearchParams(location.search), d = p.get('dados');
+        if (d) { try { dividasExtraidas = JSON.parse(decodeURIComponent(d)); if (dividasExtraidas.length) mostrarTelaAnalise(); } catch(e) {} }
+        const s = localStorage.getItem('limpaNomeDividas');
+        if (!dividasExtraidas.length && s) { try { dividasExtraidas = JSON.parse(s); if (dividasExtraidas.length) { mostrarTelaAnalise(); localStorage.removeItem('limpaNomeDividas'); } } catch(e) {} }
+    });
+
+    function mostrarTelaAnalise() {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById('telaAnalise').classList.add('active');
+        document.getElementById('numDividasDetectadas').textContent = dividasExtraidas.length + ' dívidas encontradas';
+        setTrialStart(); atualizarBanners();
+    }
+
+    // ============ ALGORITMO PRINCIPAL ============
+    function executarAnalise() {
+        const orcamentoMensal = parseFloat(document.getElementById('orcamento').value) || 0;
+        const temOrcamento = orcamentoMensal > 0;
+        const trialAtivo = isTrialActive();
+
+        const historico = salvarAnalise(dividasExtraidas);
+        const comparacao = compararComUltimaAnalise(dividasExtraidas);
+        const scoreAtual = calcularScore(historico[historico.length - 1]);
+
+        const container = document.getElementById('resultadoContainer');
+        let html = '';
+
+        // SCORE
+        html += `<div class="card" style="text-align:center">
+            <div style="font-size:10px;color:var(--cinza-medio)">Índice LimpaNomeJá</div>
+            <div style="font-size:28px;font-weight:800;color:var(--verde)">${scoreAtual}</div>
+            <div class="score-bar"><div class="score-fill" style="width:${scoreAtual/10}%"></div></div>
+            <div style="font-size:9px;color:var(--cinza-medio)">0 = crítico · 1000 = excelente</div></div>`;
+
+        // ALERTAS
+        if (comparacao && comparacao.alertas.length > 0) {
+            html += `<div style="font-size:11px;font-weight:600;margin:8px 0 4px;color:var(--laranja)">Oportunidades:</div>`;
+            comparacao.alertas.forEach(a => {
+                html += `<div class="card alerta"><strong>${a.credor}</strong>: reduziu R$ ${a.diff.toFixed(2)}</div>`;
+            });
+        }
+
+        // ============ OTIMIZAÇÃO ============
+        let selecionadas = [];
+        let totalMensal = 0;
+        let economiaTotal = 0;
+        let saldo = orcamentoMensal;
+
+        if (temOrcamento) {
+            const todasOpcoes = [];
+            dividasExtraidas.forEach((d, idx) => {
+                const opcoes = d.parcelamentos || gerarOpcoesParcelamento(d);
+                opcoes.forEach(op => {
+                    const cet = calcularCET(d.vista, op.valor, op.parcelas);
+                    const totalParcelado = op.valor * op.parcelas;
+                    const economia = d.original ? d.original - totalParcelado : 0;
+                    todasOpcoes.push({ dividaIdx: idx, divida: d, parcelas: op.parcelas, valorParcela: op.valor, cet, totalParcelado, economia, credor: d.credor || 'Dívida', original: d.original, vista: d.vista });
+                });
+            });
+
+            todasOpcoes.sort((a, b) => {
+                if (a.valorParcela !== b.valorParcela) return a.valorParcela - b.valorParcela;
+                return a.cet - b.cet;
+            });
+
+            const jaSelecionadas = new Set();
+            for (const op of todasOpcoes) {
+                if (jaSelecionadas.has(op.dividaIdx)) continue;
+                if (saldo >= op.valorParcela) {
+                    const opcoesDaMesma = todasOpcoes.filter(o => o.dividaIdx === op.dividaIdx && o.valorParcela <= saldo);
+                    const melhor = opcoesDaMesma.reduce((m, a) => (a.cet < m.cet || (a.cet === m.cet && a.valorParcela < m.valorParcela)) ? a : m, opcoesDaMesma[0]);
+                    selecionadas.push(melhor);
+                    saldo -= melhor.valorParcela;
+                    jaSelecionadas.add(op.dividaIdx);
+                }
+            }
+
+            totalMensal = selecionadas.reduce((s, d) => s + d.valorParcela, 0);
+            economiaTotal = selecionadas.reduce((s, d) => s + d.economia, 0);
+
+            html += `<div class="resultado-box">
+                <div class="numero">${selecionadas.length}</div>
+                <div style="font-size:10px;color:var(--cinza-medio)">de ${dividasExtraidas.length} dívida(s) cabem no seu orçamento</div>
+                <div style="font-size:11px;margin-top:4px">Total: <strong>R$ ${totalMensal.toFixed(2)}/mês</strong></div>
+                <div style="font-size:10px;color:var(--cinza-medio)">Sobram R$ ${saldo.toFixed(2)}/mês</div>
+                ${economiaTotal > 0 ? `<div style="font-size:12px;color:var(--verde);margin-top:6px;font-weight:600">Economia total vs original: R$ ${economiaTotal.toFixed(2)}</div>` : ''}
+                ${economiaTotal < 0 ? `<div style="font-size:11px;color:var(--laranja);margin-top:4px">Custo adicional: R$ ${Math.abs(economiaTotal).toFixed(2)}</div>` : ''}
+            </div>`;
+        }
+
+        // Mostrar dívidas
+        const limite = trialAtivo ? dividasExtraidas.length : Math.min(GRATUITAS, dividasExtraidas.length);
+        const idxSelecionadas = new Set(selecionadas.map(s => s.dividaIdx));
+        const resto = dividasExtraidas.filter((d, i) => !idxSelecionadas.has(i));
+        const dividasParaMostrar = temOrcamento && selecionadas.length > 0
+            ? [...selecionadas.map(s => ({ ...s.divida, _sel: s })), ...resto].slice(0, limite)
+            : [...dividasExtraidas].sort((a, b) => ((b.vista && b.original ? (b.original - b.vista) / b.original : 0) - (a.vista && a.original ? (a.original - a.vista) / a.original : 0))).slice(0, limite);
+
+        html += `<p style="font-size:11px;font-weight:600;margin:8px 0 4px">${trialAtivo ? 'Todas as dívidas (trial)' : `${limite} melhores (grátis)`}:</p>`;
+
+        dividasParaMostrar.forEach((d, i) => {
+            const descPct = d.original && d.vista ? Math.round((1 - d.vista / d.original) * 100) : 0;
+            const opcoes = d.parcelamentos || gerarOpcoesParcelamento(d);
+            const sel = d._sel || null;
+            const foiSelecionada = !!sel;
+
+            html += `<div class="card destaque">
+                <strong>${i + 1}º</strong> <span class="badge badge-verde">${descPct}% OFF</span>
+                <span style="font-size:9px;color:var(--cinza-medio)">${d.credor || 'Dívida'}</span>
+                <div style="font-size:10px;color:var(--cinza-medio);margin-top:3px">Original: R$ ${d.original ? d.original.toFixed(2) : 'N/D'}</div>
+                <div style="font-size:14px;font-weight:700;color:var(--verde)">À vista: R$ ${d.vista ? d.vista.toFixed(2) : 'N/D'}</div>`;
+
+            if (foiSelecionada) {
+                html += `<div style="margin-top:6px;background:var(--verde-claro);border:1px solid var(--verde);border-radius:8px;padding:8px">
+                    <div style="font-size:10px;font-weight:600;color:#065f46">✔ Cabo no seu orçamento:</div>
+                    <div style="font-size:12px;font-weight:700;color:var(--verde)">${sel.parcelas}x de R$ ${sel.valorParcela.toFixed(2)}/mês</div>
+                    <div style="font-size:10px;color:#065f46">Total: R$ ${sel.totalParcelado.toFixed(2)}${sel.cet === 0 ? ' • SEM JUROS' : ` • CET ${sel.cet.toFixed(1)}% a.m.`}</div>
+                    ${sel.economia > 0 ? `<div style="font-size:11px;font-weight:600;color:#065f46;margin-top:2px">Economia: R$ ${sel.economia.toFixed(2)} vs original</div>` : ''}
+                </div>`;
+            }
+
+            if (opcoes.length > 0) {
+                html += `<div style="margin-top:6px;font-size:9px;color:var(--cinza-medio)">Opções disponíveis:</div>`;
+                opcoes.forEach(o => {
+                    const cet = calcularCET(d.vista, o.valor, o.parcelas);
+                    const total = o.valor * o.parcelas;
+                    const econ = d.original ? d.original - total : 0;
+                    const ehSel = sel && o.parcelas === sel.parcelas && Math.abs(o.valor - sel.valorParcela) < 0.01;
+                    let bdg = '';
+                    if (cet === 0) bdg = ' <span style="background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:8px;font-size:8px">SEM JUROS</span>';
+                    else if (cet > 5) bdg = ' <span style="background:#fee2e2;color:#991b1b;padding:1px 5px;border-radius:8px;font-size:8px">JUROS ALTOS</span>';
+                    html += `<div class="parcela-opcao ${ehSel ? 'melhor' : ''}">${ehSel ? '✔ ' : ''}${o.parcelas}x de R$ ${o.valor.toFixed(2)} = R$ ${total.toFixed(2)} | CET ${cet.toFixed(1)}%${bdg}${econ > 0 ? ` · Economia: R$ ${econ.toFixed(2)}` : ''}</div>`;
+                });
+            }
+
+            const p = sel ? sel.parcelas : (opcoes[0]?.parcelas || 'X');
+            const v = sel ? sel.valorParcela.toFixed(2) : (opcoes[0]?.valor?.toFixed(2) || 'Y');
+            html += `<div class="script-box"><strong>Script:</strong> "Olá! Sobre a dívida de R$ ${d.original ? d.original.toFixed(2) : 'X'}, gostaria de parcelar em ${p}x de R$ ${v}. Podemos fechar? Aguardo."</div></div>`;
+        });
+
+        // BLOQUEADAS
+        const bloqueadas = dividasExtraidas.length - dividasParaMostrar.length;
+        if (!trialAtivo && bloqueadas > 0) {
+            html += `<div class="premium-card">
+                <h3>+${bloqueadas} dívidas bloqueadas</h3>
+                <p style="font-size:10px;opacity:.9">Libere o plano completo com todas as dívidas e planejamento mensal</p>
+                <div class="preco">${PRECO}<small>/mês</small></div>
+                <div class="garantia">Garantia de 7 dias</div>
+                <p style="font-size:9px;margin:3px 0">Chave Pix:</p>
+                <div class="chave-pix">${CHAVE_PIX}</div>
+                <p style="font-size:8px;opacity:.7">ID: ${sessaoId} · Liberação automática</p>
+            </div>`;
+        }
+
+        // COMPARTILHAR
+        if (selecionadas.length > 0 || !temOrcamento) {
+            html += `<div class="share-box">
+                <p>Gostou? Compartilhe com quem também precisa:</p>
+                <button class="btn btn-verde" onclick="compartilharWhatsApp()">Compartilhar no WhatsApp</button>
+            </div>`;
+        }
+
+        // LEMBRETE
+        const histCompleto = obterHistorico();
+        if (histCompleto.length >= 2) {
+            const ant = histCompleto[histCompleto.length - 2];
+            const atu = histCompleto[histCompleto.length - 1];
+            if (atu.totalDividas < ant.totalDividas) {
+                html += `<div class="card" style="text-align:center;border:1px solid var(--verde);background:var(--verde-claro);margin-top:8px">
+                    <div style="font-size:13px;font-weight:700;color:#065f46">Parabéns!</div>
+                    <div style="font-size:11px;color:#065f46">Você removeu <strong>${ant.totalDividas - atu.totalDividas}</strong> restrição(ões)!</div>
+                    <div style="font-size:10px;color:#065f46">Continue pagando as parcelas em dia.</div>
+                </div>`;
+            }
+        }
+
+        // HISTÓRICO
+        if (histCompleto.length >= 2) {
+            html += `<hr><div style="font-size:12px;font-weight:600;margin:6px 0">Evolução</div>`;
+            histCompleto.slice(-6).reverse().forEach(h => {
+                const data = new Date(h.data).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+                html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-data">${data}</div><div>${h.totalDividas} dívidas</div></div>`;
+            });
+        }
+
+        container.innerHTML = html;
+
+        document.getElementById('premiumContainer').innerHTML = '';
+        if (!trialAtivo && bloqueadas > 0) {
+            document.getElementById('premiumContainer').innerHTML = '<div id="conteudoLiberado" style="display:none"></div>';
+            db.collection('pagamentos').doc(sessaoId).onSnapshot(doc => {
+                if (doc.exists && doc.data().status === 'confirmado') liberarPremium();
+            }, () => {
+                document.getElementById('premiumContainer').innerHTML += '<button class="btn btn-laranja" onclick="liberarPremium()" style="margin-top:6px">Já paguei — Liberar</button>';
+            });
+        }
+
+        container.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function gerarOpcoesParcelamento(d) {
+        if (!d.vista || d.vista <= 0) {
+            if (d.parcela && d.nParc) return [{ parcelas: d.nParc, valor: d.parcela }];
+            return [];
+        }
+        const opcoes = [{ parcelas: 1, valor: d.vista }];
+        [3, 6, 12, 24, 36, 48, 60].forEach(p => {
+            const juros = 0.015 + (Math.random() * 0.025);
+            const total = d.vista * Math.pow(1 + juros, p);
+            const valor = total / p;
+            if (valor >= 10 && valor < d.vista) opcoes.push({ parcelas: p, valor });
+        });
+        return opcoes.sort((a, b) => a.valor - b.valor).slice(0, 6);
+    }
+
+    function calcularCET(vista, vp, parc) {
+        if (!vista || vista <= 0) return 0;
+        return (Math.pow((vp * parc) / vista, 1 / parc) - 1) * 100;
+    }
+
+    function liberarPremium() {
+        const c = document.getElementById('conteudoLiberado');
+        c.style.display = 'block';
+        let h = '<p style="font-weight:600;color:var(--verde);margin-bottom:6px">Análise Completa Liberada</p>';
+        dividasExtraidas.forEach((d, i) => {
+            const op = d.parcelamentos || gerarOpcoesParcelamento(d);
+            h += `<div class="card destaque"><strong>${i + 1}º</strong> <span class="badge badge-verde">${d.original && d.vista ? Math.round((1 - d.vista / d.original) * 100) : 0}% OFF</span>
+            <div style="font-weight:700;color:var(--verde)">À vista: R$ ${d.vista ? d.vista.toFixed(2) : 'N/D'}</div>
+            ${op.map(o => `<div class="parcela-opcao">${o.parcelas}x de R$ ${o.valor.toFixed(2)}</div>`).join('')}
+            <div class="script-box"><strong>Script:</strong> "Olá! Sobre a dívida de R$ ${d.original ? d.original.toFixed(2) : 'X'}, gostaria de parcelar em ${op[0]?.parcelas || 'X'}x de R$ ${op[0]?.valor?.toFixed(2) || 'Y'}. Podemos fechar?"</div></div>`;
+        });
+        h += '<button class="btn btn-primario" onclick="gerarPDF()" style="margin-top:6px">Baixar PDF com Plano de Ação</button>';
+        c.innerHTML = h;
+        document.querySelector('.premium-card').style.display = 'none';
+        c.scrollIntoView({ behavior: 'smooth' });
+        mostrarToast('Conteúdo liberado!');
+    }
+
+    function gerarPDF() {
+        const c = document.getElementById('conteudoLiberado').innerHTML;
+        const w = window.open('', '_blank');
+        w.document.write(`<html><head><title>Plano de Ação - LimpaNomeJá</title><style>body{font-family:Arial;padding:20px;color:#333}h1{color:#1e3a5f}</style></head><body><h1>Plano de Ação — LimpaNomeJá</h1><p>Criado por Willian Santana</p><hr>${c}</body></html>`);
+        w.document.close();
+        setTimeout(() => w.print(), 500);
+    }
+
+    function compartilharWhatsApp() {
+        const texto = `🪄 Descobri uma ferramenta GRÁTIS que analisa dívidas do Serasa/SPC e mostra quais pagar! ${window.location.href}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, '_blank');
+    }
+    </script>
+</body>
+</html>
